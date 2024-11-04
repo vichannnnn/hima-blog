@@ -8,6 +8,11 @@ interface PageProps {
 }
 
 export default async function Page({ params }: PageProps) {
-  const { content } = getPostContent(params.slug);
-  return <ReactMarkdown>{content}</ReactMarkdown>;
+  const { data, content } = getPostContent(params.slug);
+  return (
+    <div className='w-4/5 custom-markdown'>
+      <h1 className='mb-8'>{data.title}</h1>
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
+  );
 }

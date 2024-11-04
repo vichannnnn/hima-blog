@@ -1,0 +1,186 @@
+---
+title: CI/CD Pipeline, what are they? (Part one)
+subtitle: You might have heard about the term CI/CD Pipeline everywhere. What does it do and what does it mean?
+slug: cicd-pipeline-what-are-they-part-one
+image: 0282258162d04e5da3bee6ff1874329a.png
+category: Programming
+date: 2023-05-18 23:03:35.324014+00
+
+---
+
+For today's topic, I wanted to focus a bit more on one of the tactics in development operations (or DevOps) that I interact with pretty much daily in my work as well as in my personal projects.
+
+&nbsp;
+
+### What is CI/CD Pipeline and what does it do?
+
+&nbsp;
+
+So for starters, you might have heard about the term CI/CD Pipeline, what does CI/CD stand for and what does it do? So I'm going to cheat a little bit and ask GPT-4 (yes, 4, not 3.5) about the definition and summary, this is what it responded with:
+
+
+
+> CI/CD stands for Continuous Integration/Continuous Deployment, and it's a crucial practice in modern software development that aims to improve and streamline the process of software delivery.
+>
+> Here's what each term means:
+>
+> Continuous Integration (CI): This is a development practice where developers integrate code into a shared repository frequently, ideally several times a day. Each integration can then be verified by an automated build and automated tests. The primary goals of CI are to find and address bugs quicker, improve software quality, and reduce the time to validate and release new software updates.
+>
+> Continuous Deployment (CD): This is a software release process that uses automated testing to validate if changes to a codebase are correct and stable for immediate autonomous deployment to a production environment. In other words, it's the practice of releasing every good build to users.
+
+
+Well... I would have to say that GPT-4 nailed the summary pretty concisely, and it is in line with what I've experienced with it and how I'm using it.
+
+&nbsp;
+
+
+### How I started integrating CI/CD into my development workflow
+
+You might ask then, why talk about this topic specifically today?
+
+This is because CI/CD pipeline was what got me heavily involved in a DevOps role as a software engineer when I was having trouble. A couple years ago, when I was still an amateur developer, I was running my dev and prod environment in the cloud like any normal engineer does, so I was doing repository pushes, ssh-ing into the cloud, pulling the repo, and restarting it, I repeated that manual process way more than I'm proud to mention.
+
+So I was in my Discord chat with a group of developer friends and I asked, *There must be a way to automate this process right?  Why the hell do I need to go into the cloud and pull my repo and rebuild my app every single time for every small update?*
+
+One of my developer friends then responded with a sentence, *What you're looking for is probably CI/CD, to which I responded, ??? CI what?*
+
+So that started the whole rabbit hole down into automating my development & deployment process.
+
+
+&nbsp;
+
+
+### How is CI/CD used in a workflow?
+
+So for any software engineers, you'd probably know that your application, whether is it production or development, is most likely hosted somewhere in the cloud so you can run it 24/7, and when you push an update, you'd probably want the repo or Docker image of the application that you're running in the cloud to be synced automatically to this new update so you can see the changes immediately.
+
+The CI/CD is usually done in the git hosting service (GitHub/GitLab/BitBucket etc.) because the process is triggered from an event such as an update to a repo or branch. I'll focus on GitHub since it is the more commonly used service.
+
+If you look at a GitHub repo with CI/CD workflow implemented, you'll probably see a folder containing something like `.github/workflows/main.yml`, the CI/CD processes are all basically in this `main.yml` *(plot twist: everything you do in the end is in YAML)*.
+
+
+So for an engineer who doesn't know about the DevOps process or CI/CD, this is what is going to happen to get the desired outcome mentioned above:
+
+> Push update to GitHub from local environment -> Merge into dev environment on GitHub -> SSH into the cloud where the app is running -> Pull the updated repo -> Run tests -> Rebuild the image or run the app
+
+And for an engineer that knows and has CI/CD process built into their app/repo workflow, this is what is  going to happen to get the desired outcome mentioned above:
+
+> Push update from local environment -> Merge into dev environment
+
+What happened to all the manual processes, why are all the subsequent steps after merging into dev gone?
+The reason is very simple, everything that is gone, basically the deployment process, is being automated by the CI/CD process, I'll talk about the advantages of a basic CI/CD pipeline:
+
+- It abstracts away the entire deployment process, as you can see above you just have to push an update or merge an update into a specified branch and CI/CD will take care of everything automatically up to the deployment of the latest updated app version. It is a one-click wonder.
+- In an ideal CI/CD workflow, you do not have to ssh into the cloud to handle or access anything.
+- You can run automated tests and automated builds to ensure that nothing goes wrong in the process, and if there is, it will be stopped automatically.
+- Once you get the CI/CD process written and implemented, it will be very consistent in terms of deployment, so there won't be any issues like a developer messing up a manual deployment step. You can't fuck it up.
+- Engineers are able to focus solely on development without worrying about integration or delivery of the app.
+
+&nbsp;
+
+
+### My experience with CI/CD Pipeline
+
+I'll first talk about what I did for my personal project, a technical blog post isn't really technical if there is no code, so I'm going to share the CI yaml file that I've done for this blog application!
+
+&nbsp;
+
+
+```yaml
+
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: vichannnnn/hima-blog-app
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CICD_TOKEN }}
+
+      - name: Build and push Backend Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/hima-blog-backend:latest
+
+      - name: Build and push Frontend Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/hima-blog-frontend:latest
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print github.ref
+        run: echo github.ref=${{ github.ref }}
+
+      - name: executing remote ssh commands using private key
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.MASTER_REMOTE_HOST }}
+          username: ${{ secrets.MASTER_REMOTE_USER }}
+          key: ${{ secrets.MASTER_SSH_PRIVATE_KEY }}
+          script: |
+              cd hima-blog-app
+              docker compose pull
+              docker compose up -d
+              make migrate
+              rm -r ../api-gateway/hima-blog-app
+              docker cp hima-blog-frontend:/usr/share/caddy/hima-blog-app ../api-gateway/hima-blog-app/
+              docker compose stop hima-blog-frontend
+              docker restart api-gateway
+
+
+```
+
+
+&nbsp;
+
+Basically what this YAML file does is very simple, it updates my docker application images on the GitHub container registry with the new updated code, and then it SSHes into my cloud on new push events in my master branch, followed by pulling the updated image and deploys it.
+
+Of course, this is a very simple and crude option for the last step, we could probably make a bash script in the environment and call it instead of listing out the information in the YAML file, we could also spin up a server in the cloud or AWS Lambda with an authenticated endpoint that triggers this deployment process.
+
+For some context, in my previous company, we had over 10 microservices running and doing different things independently, our engineer ratio for full-time versus interns was awfully small, on average, it was about 3 senior full-time engineers versus 8 interns.
+
+Since we were getting many pushes and updates in different services every day, in order to reduce the senior engineer's responsibility to just doing a code review with the interns or juniors in order to maximize the development velocity, a CI/CD pipeline had to be built for every service in order to handle the automated testing and deployment.
+
+
+&nbsp;
+
+### Conclusion
+I realized that when I started off blogging, many aspects and content of the previous few blog posts (including this) revolved around DevOps. I strongly believe that software engineers should be able to do minimal DevOps as well because they're expected to be able to deploy their own applications.
+
+
+I have worked at a company where I did not get to interact with the development workflow at all, and all I did was pick tickets, fix bugs, implement feature endpoints, and rinse and repeat, and the growth and prospects were awfully limited as I was siloed into being a code monkey, and I'm sure that if I stayed content doing just these, I wouldn't have interesting topics like this to write about.

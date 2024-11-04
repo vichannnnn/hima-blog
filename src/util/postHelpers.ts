@@ -9,12 +9,10 @@ export interface BlogPostMetadata {
   image: string;
   category: string;
   date: Date;
-  tags: string[];
 }
 
 export const getListOfPosts = () => {
   const folder = path.join(process.cwd(), 'src/markdowns');
-  console.log(folder);
   const files = fs.readdirSync(folder);
   return files.filter((file) => file.endsWith('.mdx'));
 };

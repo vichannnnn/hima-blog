@@ -8,8 +8,6 @@ interface Metadata {
   slug?: string;
   image?: string;
   category?: string;
-  preview?: string;
-  tags?: string[];
 }
 
 interface MdxData {

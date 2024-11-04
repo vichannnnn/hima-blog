@@ -1,0 +1,64 @@
+---
+title: My First Post (really)
+subtitle: About this blog and how it came about. Many twists and turns but it ended up better than expected!
+slug: my-first-post-really
+image: 37c55a0b2a214587a0b2020e4700ae39.png
+category: Programming
+date: 2023-05-09 16:19:37.328693+00
+
+---
+
+I've always wanted to start an engineering blog because I thought it would be great to document my thought process and the inner workings of something I'm building or learning as I go along so I have something to look back on in retrospect from time to time to see how much I've grown!
+
+The problem was that I've never really liked writing on a blog that wasn't bespoke to my requirements (I like to have nice cutesy themes you see..), so I decided that I didn't really want to use something like Medium, WordPress or Blogger.
+
+&nbsp;
+
+----
+
+&nbsp;
+
+So a couple of weeks earlier, after getting laid off and while I was in the interview phase of looking for a job without the additional commitment of a full-time job (that only lasted for a month, for better or worse), I decided that it was probably a great idea to just hack out this entire blog application from scratch for above-mentioned reasons, hosted on my home server, so I could get over the inertia and start blogging. I mean, that's what we like to do right? Overengineering and recreate a new solution for an already solved problem!
+
+&nbsp;
+
+This application was originally meant to be a multi-tenant SaaS web application centered around it being minimalistic without many complicated features, in order to focus purely on writing, for those who are not familiar with the term multi-tenant application, here is some context and some definition:
+
+
+> The multi-tenancy concept is that numerous users share computational, networking, and storage resources without seeing each other’s data. A multi-tenant application is customized for every group of users (so-called tenants) while the entire architecture and core functionality remain the same. Multi-tenancy is a typical approach for Software-as-a-Service (SaaS) vendors.
+
+&nbsp;
+
+More specifically, this was what I was trying to go for when designing this application:
+
+
+> Tenant-specific subdomains (a.k.a. custom subdomains) are a common feature provided in a multi-tenant SAAS solution, allowing each tenant to configure a subdomain of their choice.
+
+&nbsp;
+
+Halfway through, I decided that it was a waste of time creating a SaaS solution like this and I realized that the work was a lot more than what I thought it would be and to even produce something that is both MVP and production-ready would take quite a while and I don't think I was ready to handle these entire requirements alone with both a new job lined up and handling my studies simultaneously. So I decided to turn it into a personal blog to remove all the layers of complexity while being able to start my blogging immediately.
+
+&nbsp;
+
+To show some light on what is the layers of complexity that I was talking about between a truly personal blog for myself and an actual production ready personal blog serving the masses, here are some differences that would take up a lot of time:
+
+&nbsp;
+
+- **Payment API** - since this is a SaaS, there's definitely some form of subscription needed, right? We would probably need to use something like Stripe and to handle the payment logic, the payment system has to be done meticulously as well because this is definitely part of the logic where you do not want to screw up.
+
+- **Email verification** - to have an accounts & user system, obviously the bare minimum would be to have some form of email verification layer, this requires me to either host my own SMTP server, which is a pain to set up, or we can outsource it to an external service like Twilio's SendGrid or Mailgun, in my case, I decided on Postmark because I got my account approved really fast there and it was the easiest to use and SendGrid somehow automatically denied me for some reason. That means we needed to set up an extra authentication flow as well with extra endpoints, not to mention designing the email HTML template.
+
+- **Handling subdomains** - Remember I mentioned about this being a multi-tenant application? Yes, that means every user will get their own subdomain and we will need to properly configure the routing and properly isolate the resources so that nobody can see each other's data.
+
+- **Testing** - Testing is a very integral part of the entire process. I don't mean manually testing, but writing tests to make sure that the endpoints are working properly and each feature is properly integrated. I don't like to skip testing when building something, but if I were to use it personally, given the time constraint that I have with other commitments, I could get away with it easily with minimal testing or no testing, but if it is something going into production en masse, you'd better be sure that this goes through a proper and thorough testing with a certain level of test coverage.
+
+- **UI/UX Design** - I'm shit at design and even from a user's perspective since I'll be using the application, I won't be able to fully capture the entire user experience down and implement it properly, this is honestly better off left to a professional. There's a reason why UI/UX designers are in demand nowadays and why UI/UX is becoming the meta for product development!
+
+&nbsp;
+
+
+---
+
+
+
+To conclude, this was basically the high-level thought process behind the motivation and designing this without getting super technical yet, but I would like to touch on the architecture design under the hood in a follow-up post and the thought process that goes behind it.

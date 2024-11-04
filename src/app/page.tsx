@@ -3,10 +3,9 @@ import { BlogPostsGrid } from '@components/BlogPost/BlogPostsGrid';
 
 export default function Home() {
   const posts = getListOfPosts();
-  console.log(posts);
 
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between p-24 font-poppins'>
+    <main className='flex min-h-screen w-4/5 flex-col items-center justify-between p-8'>
       <BlogPostsGrid posts={posts} />
     </main>
   );

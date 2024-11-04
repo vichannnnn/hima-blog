@@ -1,6 +1,6 @@
 {
-  "name": "hima-blog-app-v2",
-  "version": "0.1.0",
+  "name": "hima-blog-app",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",

@@ -1,0 +1,131 @@
+---
+title: Engineering a crappy blog (Part one)
+subtitle: Sharing the application architecture of a proof-of-concept service.
+slug: engineering-a-crappy-blog-part-one
+image: 0282258162d04e5da3bee6ff1874329a.png
+category: Programming
+date: 2023-05-18 23:03:35.324014+00
+
+---
+
+I was planning to maintain a schedule of about two to three blog posts per week, unfortunately, commitments in life get in the way, especially since I've just started a new job, but I'm trying to maintain the discipline since I do have a lot of document down and share.
+
+Previously, I talked about why this blog came about and today, I want to talk about how this blog came about!
+
+To preface, I'm not really proud to say this but this was just a mishmash of both frontend and backend equivalent to what someone would do at a typical hackathon in a couple of days or hours, but I thought it would be interesting to share how the POC (proof-of-concept) was built.
+
+**Author's update on November**: *I've managed to spend a couple of days rewriting the frontend for this and it was satisfying to see how much I've grown in the frontend domain over the last half a year! (I knew nothing about React or anything about frontend at the start of 2023)*
+
+If you're interested in the source code or if you would like to deploy it yourself and start your personal blog, you can find it on GitHub [here](https://github.com/vichannnnn/hima-blog-app)!
+
+&nbsp;
+
+----
+
+&nbsp;
+
+
+To give a quick overview of the tech stack: the blog service was made with **TypeScript & React** as the framework on the frontend (please pardon the spaghetti code on the frontend, I'm not exactly familiar with React at the time of coding), and **Python with FastAPI** as the framework on the backend, and **Postgres** as the database housing all these texts, all packaged and shipped in **Docker** containers to my home server.
+
+So you might ask, why use this specific tech stack and is there any particular reason for the choice?
+
+However stupid it might sound, it's just a mixture of a few reasons:
+
+1. It's the popular and modern technology and framework, it makes money, so there's nothing wrong with practicing on them! (I'll gladly suck up anything that is in Python, TypeScript, and Go. 😋)
+2. It's what I'm familiar with, so there's some form of rapid iteration & development, time is money, right?
+3. There was no need to optimize the stack needed and create a billion microservices with load balancing, and quick performance for the use case of this blog, so anything goes.
+
+
+The application architecture is very simple:
+
+1. Frontend service is built with **Vite**,  runtime using **bun**, this is served through a reverse proxy called **Caddy** (basically an Nginx alternative for those who have never heard of it) in a container in production mode and as a server during development. The frontend application communicates with the backend service through HTTP.
+2. Backend service containerized and running in **uvicorn** which handles the API calls from the frontend service.
+3. Postgres database service container communicating with the backend service as the source of truth.
+4. **Caddy** service container running as a reverse proxy and handling the routing of all the frontend and backend services with HTTPS.
+5. ~~A **Docker** volume storing the uploaded image files and accessed by the backend service through file pointers in the database.~~
+
+&nbsp;
+
+
+### Why Vite and not Create React App?
+
+If you have not been keeping up to date, [CRA was deprecated by the official React team](https://blog.bitsrc.io/the-future-of-react-why-create-react-app-is-deprecated-and-hooks-are-the-future-83e8a087a325#:~:text=The%20deprecation%20of%20create%2Dreact%2Dapp,-One%20surprising%20change&text=This%20popular%20tool%20was%20previously,js%20and%20Remix%20or%20Vite.), okay, fine, they didn't explicitly said it, but it was heavily implied through the lack of mention in their new `react.dev` website.
+
+I'm actually using CRA in my current company, not by my choice of course, and it was slow as hell, the hot reload takes a good 5-10 seconds to render the new changes during the development process, and the entire DX (development experience) was extremely painful, and let's not even get started on how long it takes to start up or build. I'd suggest reading a [blog that touches on the comparison in deeper detail](https://dev.to/nilanth/use-vite-for-react-apps-instead-of-cra-3pkg) and why you should stop using CRA.
+
+In comparison, Vite is hella fast when it comes to hot reloading and the transition is really smooth. I believe it is also the de facto standard nowadays because I'm seeing a lot of use for it professionally and in workshop demos as well.
+
+&nbsp;
+
+### Why Docker volume and not S3 bucket?
+
+So if you're wondering why I used a docker volume to store my file assets instead of something like an **S3 bucket**, which was tailored for this purpose, the reason is simple: The service is personal and small, it was intended to be a standalone application that could be deployed anywhere easy with a simple `docker-compose` command. We actually do not need that much storage for our use case either.
+
+Obviously, if it was a production app meant for general public usage, please use an S3 bucket!
+
+**Author's update on November**: *In hindsight, this sucks, there is a lot of configuration needed on your docker-compose as well on your proxy layer, please save yourself the sanity and just get an S3 bucket created, ther is a reason why it was made as a storage solution, it can be plugged in easily onto your app layer and it doesn't cost much to store stuff on it as a storage solution as well~*
+
+&nbsp;
+
+### Why Caddy and not Nginx?
+
+The reason I used **Caddy** over nginx was because it handles the SSL certificate automatically for me without extra configuration, and it was way easier to just write a few lines of a simple and human-readable configuration for our `Caddyfile` that handles two different services with three different functions.
+
+This is a very simple plug-and-play proxy solution that handles all the HTTPS and SSL/TLS certificate automatically for you. I will actually want to talk about this in another blog post by itself!
+
+```yaml
+{$BACKEND_URL} {
+    handle_path /api/v1/* {
+	    reverse_proxy {$BACKEND_CONTAINER_URL}
+	    }
+}
+
+{$FRONTEND_URL} {
+    root * /usr/share/caddy
+    file_server
+}
+
+{$IMAGE_URL} {
+        handle_path /images/* {
+                root * /srv
+                header Access-Control-Allow-Origin *
+                file_server
+        }
+}
+```
+
+Easy to understand, isn't it?
+
+In fact, Caddy was introduced to me by my tech lead back in my previous company, he mentioned that he preferred Caddy because it was really simple to configure and deploy, and it was part of our onboarding process for the full-time engineers & interns for them to understand how we proxy our services.
+
+Initially, I was a bit apprehensive for several reasons:
+
+Firstly, it was (and still is) rather new and there isn't much proper support, especially for edge cases.
+
+Secondly, because Nginx is the de facto industry standard, heck, even Traefik is used more and I've literally never heard of Caddy until my lead introduced Caddy to me.
+
+But over time, I was quite convinced as it got the job done and required a lot less work, it was easy to onboard new hires by allowing them to learn new concepts such as reverse proxy, load balancing, and how it works without overwhelming them with an insane amount of configurations.
+
+&nbsp;
+
+### I noticed there was a Makefile, and it is also part of the deployment instruction, what is it for?
+
+Makefile was also introduced to me at the job in a different company, the main purpose was to further abstract (yes, apparently Docker wasn't enough to abstract the entire DevOps process) the deployment process so that engineers do not need to have a headache over what commands they need to use.
+
+What Makefile does is very simple, it essentially houses a few bash scripts and you can tag them with an alias, so you will be able to run other scripts that you need to set up just as easily as running `docker compose up -d --build`.
+
+To give you an example,
+
+```bash
+hello:
+	echo Hello, world!
+```
+
+You'll probably notice that there's this sanity check command in the Makefile, by running `make hello`, you'll print out `Hello, world!` in your shell. Easy, isn't it? Good when you're trying to onboard a fellow engineer and I promise you, they will thank you for it.
+
+&nbsp;
+
+----
+
+
+To sum it up and conclude, I'd love to go into deeper details, but I don't think a POC application is interesting enough to really warrant that much in-depth explanation for a technical blog, but I thought it would be great to share some of the highlights about the decisions that I've considered when building the application.

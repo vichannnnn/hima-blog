@@ -22,9 +22,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonBaseProps>(
           color: 'black',
           textTransform: 'capitalize',
           fontFamily: 'PatrickHandSC, sans-serif',
-          padding: '8px 36px',
-          fontSize: '36px',
-          borderRadius: '50px',
+          padding: '8px 8px 8px 8px',
+          fontSize: '18px',
+          borderRadius: '32px',
           '&:hover': {
             backgroundColor: '#b8e9f7',
             border: 'none',

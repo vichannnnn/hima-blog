@@ -10,13 +10,12 @@ export interface BlogPost {
   image: string;
   category: string;
   date: Date;
-  tags: string[];
 }
 
-export const BlogPost = ({ title, subtitle, slug, image, category, date, tags }: BlogPost) => {
+export const BlogPost = ({ title, subtitle, slug, image, category, date }: BlogPost) => {
   return (
     <article key={slug}>
-      <div>
+      <div className=''>
         <Link href={`blog/${slug}`}>
           <img
             src={`${NEXT_PUBLIC_AWS_CLOUDFRONT_URL}${image}`}
@@ -31,34 +30,30 @@ export const BlogPost = ({ title, subtitle, slug, image, category, date, tags }:
           />
         </Link>
       </div>
-      <div className=''>
-        <p>
-          {Intl.DateTimeFormat('en-GB', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-          }).format(new Date(date))}
-        </p>
-      </div>
-
-      <h2 className=''>{title}</h2>
-      <p className=''>{subtitle}</p>
-      <div className=''>
-        <Link href={`blog/${slug}`}>
-          <Button
-            sx={{
-              backgroundColor: '#b8e9f7',
-              fontSize: '16px',
-              '&:hover': {
-                backgroundColor: '#a6d2de',
-                border: 'none',
-              },
-            }}
-          >
-            Read full article
-          </Button>
-        </Link>
-      </div>
+      <p className='pt-4'>
+        {Intl.DateTimeFormat('en-GB', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }).format(new Date(date))}
+      </p>
+      <h3 className='min-h-2lh line-clamp-2'>{title}</h3>
+      <p className='min-h-3lh line-clamp-3'>{subtitle}</p>
+      <Link href={`blog/${slug}`}>
+        <Button
+          sx={{
+            backgroundColor: '#b8e9f7',
+            fontSize: '16px',
+            '&:hover': {
+              backgroundColor: '#a6d2de',
+              border: 'none',
+            },
+          }}
+          className='flex justify-center mx-auto mt-4'
+        >
+          Read full article
+        </Button>
+      </Link>
     </article>
   );
 };
