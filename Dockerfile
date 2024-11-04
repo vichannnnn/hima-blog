@@ -6,7 +6,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY package.json bun.lockb ./
-RUN bun install --frozen-lockfile
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 COPY . .
-RUN bun run build
+RUN pnpm run build
