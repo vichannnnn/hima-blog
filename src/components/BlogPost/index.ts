@@ -1,2 +1,2 @@
 export * from './BlogPost';
-// export * from './BlogPostsGrid';
+export * from './BlogPostsGrid';

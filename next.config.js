@@ -1,12 +1,11 @@
 module.exports = {
-    images: {
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'image.himaa.me',
-                pathname: '**',
-            },
-
-        ],
-    },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'image.himaa.me',
+        pathname: '**',
+      },
+    ],
+  },
 };
