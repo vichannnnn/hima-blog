@@ -50,7 +50,7 @@ jobs:
       - name: deploy
         run: |
           source jwt.env
-          curl -X POST "https://api.lambda.blog.himaa.me/api/v1/deploy" \
+          curl -X POST "https://api.lambda.blog.himaa.me/v1/deploy" \
           -H "authorization: Bearer $JWT_TOKEN" \
           -H "Content-Type: application/json" \
           -d '${{ secrets.DEPLOY_PAYLOAD }}'
