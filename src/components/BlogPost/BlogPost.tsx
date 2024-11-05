@@ -1,5 +1,6 @@
 import { Button } from '@components/Button';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const NEXT_PUBLIC_AWS_CLOUDFRONT_URL = process.env.NEXT_PUBLIC_AWS_CLOUDFRONT_URL;
 
@@ -17,7 +18,7 @@ export const BlogPost = ({ title, subtitle, slug, image, category, date }: BlogP
     <article key={slug}>
       <div className=''>
         <Link href={`blog/${slug}`}>
-          <img
+          <Image
             src={`${NEXT_PUBLIC_AWS_CLOUDFRONT_URL}${image}`}
             alt={title}
             style={{
