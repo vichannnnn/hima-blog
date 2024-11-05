@@ -19,7 +19,7 @@ jobs:
           API_USERNAME: ${{ secrets.API_USERNAME }}
           API_PASSWORD: ${{ secrets.API_PASSWORD }}
         run: |
-          RESPONSE=$(curl -s -X POST "https://api.lambda.blog.himaa.me/api/v1/login" \
+          RESPONSE=$(curl -s -X POST "https://api.lambda.blog.himaa.me/v1/login" \
           -H "Content-Type: application/json" \
           -d '{"username": "${{ env.API_USERNAME }}", "password": "${{ env.API_PASSWORD }}"}')
 
