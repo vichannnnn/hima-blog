@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { MenuView } from '@components/Header/MenuView';
 
 export const Header = () => {
@@ -8,7 +7,7 @@ export const Header = () => {
       <div className='flex w-4/5 justify-between items-center'>
         <div>
           <Link href='/' passHref>
-            <Image
+            <img
               src='https://image.himaa.me/hima-chan-original.png'
               alt='Hima!'
               height='128'
